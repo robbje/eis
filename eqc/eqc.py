@@ -1,32 +1,34 @@
 #!/usr/bin/env python2
 
-from eqclib import get_eqc
-from parser import Node, Parser
+from eqclib import getClassDefinition
+from parser import Node
+from copy import deepcopy
 
-class EqcNode(Node):
-    def __init__(self, *args, **kwargs):
+class CircuitTree(Node):
+    def __init__(self, params=[], eqc=lambda w,p: 0, name=""):
         Node.__init__(self)
-        self.p = []
-        self.eqc = lambda omega,p=self.p: 0
-        self.name = ""
+        self.p = params
+        self.eqc = eqc
+        self.name = name
 
-    def getCircuitFunc(self):
+    def collapseCircuit(self):
         if self.value.type == 'SYMBOL':
-            ln, eqc, p = get_eqc(self.value.value)
-            self.p = p
-            self.name = ln
-            self.eqc = lambda w,p: eqc(w,p)
-            return self
+            cdef = getClassDefinition(self.value.value)
+            new = CircuitTree(**cdef)
         elif self.value.type == 'PARALLEL':
-            a = self.left.getCircuitFunc()
-            a |= self.right.getCircuitFunc()
-            return a
+            new = self.left.collapseCircuit()
+            new |= self.right.collapseCircuit()
         elif self.value.type == 'SERIES':
-            a = self.left.getCircuitFunc()
-            a += self.right.getCircuitFunc()
-            return a
-        # This will result in an error, probably
-        return None
+            new = self.left.collapseCircuit()
+            new += self.right.collapseCircuit()
+        else:
+            # Something that should not happen and
+            # probably raise some exception
+            return None
+        self.eqc = deepcopy(new.eqc)
+        self.p = deepcopy(new.p)
+        self.name = deepcopy(new.name)
+        return self
 
     def __add__(self,other):
         pu = len(self.p)
@@ -46,8 +48,8 @@ class EqcNode(Node):
         return self
 
 if __name__ == "__main__":
-    p = Parser(EqcNode)
-    root = p.parse('R_4+(R_5|R_4)')
-    f = root.getCircuitFunc()
-    print f.name
-    print f.eqc(1, [2,1,4])
+    from parser import Parser
+    p = Parser(CircuitTree)
+    circuit = p.parse('R_4+(R_5|R_4)').collapseCircuit()
+    print circuit.name
+    print circuit.eqc(1,[2,1,4])
