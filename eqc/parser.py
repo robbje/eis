@@ -74,13 +74,13 @@ class Parser(object):
             self.indent -= 1
             if self.indent < 0:
                 raise Exception("Unbalanced parenthesis at pos %i" % t.lexpos)
-            if not self.current.right:
-                # TODO: There is a bug here, triggered by '()'
-                self.current.value = self.current.left.value
-                self.current.left = None
-                if not self.current.parent:
-                    raise Exception("How did you do that?")
-                self.current = self.current.parent
+            #if not self.current.right:
+            #    # TODO: There is a bug here, triggered by '()'
+            #    self.current.value = self.current.left.value
+            #    self.current.left = None
+            #    if not self.current.parent:
+            #        raise Exception("How did you do that?")
+            #    self.current = self.current.parent
         elif t.type in ['SERIES','PARALLEL']:
             # Series or parallel token
             # If the current node has a value, we need to make a new root.
