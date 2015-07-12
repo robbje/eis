@@ -34,7 +34,7 @@ class CircuitTree(Node):
 
     def __add__(self,other):
         pu = len(self.p)
-        np.append(self.p, other.p)
+        self.p = np.append(self.p, other.p)
         self.pNames += other.pNames
         f = self.eqc
         self.name = "(%s+%s)" % (self.name, other.name)
@@ -43,7 +43,7 @@ class CircuitTree(Node):
 
     def __or__(self,other):
         pu = len(self.p)
-        np.append(self.p, other.p)
+        self.p = np.append(self.p, other.p)
         self.pNames += other.pNames
         f = self.eqc
         self.name = "(%s|%s)" % (self.name, other.name)
@@ -54,8 +54,9 @@ class CircuitTree(Node):
 if __name__ == "__main__":
     from parser import Parser
     p = Parser(CircuitTree)
-    circuit = p.parse('R+(R|Warb)').collapseCircuit()
-    print circuit.name
+    circuit = p.parse('R+(R|Warb)+(R|L)+(R|L)')
     print circuit
+    circuit = circuit.collapseCircuit()
+    print circuit.name
     print circuit.pNames
-    print circuit.eqc(1,[2,1,4,3])
+    print circuit.eqc(1,[2,1,4,1,2,3,4,10])

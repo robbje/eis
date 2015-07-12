@@ -34,6 +34,7 @@ class Parser(object):
         self.lexer = lex.lex(object=self)
         self.nodeobj = nodeobj
     def parse(self, string):
+        self.line = string
         self.lexer.input(string)
         self.root = self.nodeobj()
         self.current = self.root
@@ -43,7 +44,12 @@ class Parser(object):
             if not t: break
             self.handleToken(t)
         return self.root
-
+    def genError(self,msg,pos):
+        pos += 1
+        exception = "%s at pos %i\n" % (msg, pos)
+        exception += "%s\n" % self.line
+        exception += "%s" % "^".rjust(pos, " ")
+        raise Exception(exception)
     def handleToken(self,t):
         if t.type == 'SYMBOL':
             # Symbol
@@ -63,9 +69,10 @@ class Parser(object):
             # was followed by a parenthesis
             self.indent += 1
             if self.current.left:
-                raise Exception("Unexpected parenthesis at pos %i" % t.lexpos)
-            self.current.left = self.nodeobj()
-            self.current.left.parent = self.current
+                self.genError("Unexpected parenthesis", t.lexpos)
+            tmp = self.nodeobj()
+            tmp.parent = self.current
+            self.current.left = tmp
             self.current = self.current.left
         elif t.type == 'RPAREN':
             # Right parenthesis
@@ -73,14 +80,11 @@ class Parser(object):
             # If the right leaf doesn't exist yet, collapse current node
             self.indent -= 1
             if self.indent < 0:
-                raise Exception("Unbalanced parenthesis at pos %i" % t.lexpos)
-            #if not self.current.right:
-            #    # TODO: There is a bug here, triggered by '()'
-            #    self.current.value = self.current.left.value
-            #    self.current.left = None
-            #    if not self.current.parent:
-            #        raise Exception("How did you do that?")
-            #    self.current = self.current.parent
+                self.genError("Unbalanced parenthesis", t.lexpos)
+            self.current = self.current.parent
+            if not self.current.left.value:
+                self.genError("Empty brackets", t.lexpos)
+                self.current.left = None
         elif t.type in ['SERIES','PARALLEL']:
             # Series or parallel token
             # If the current node has a value, we need to make a new root.
@@ -97,8 +101,9 @@ class Parser(object):
                 self.current = tmp
             else:
                 self.current.value = t
-            self.current.right = self.nodeobj()
-            self.current.right.parent = self.current
+            tmp = self.nodeobj()
+            tmp.parent = self.current
+            self.current.right = tmp
             self.current = self.current.right
 
 if __name__ == "__main__":
