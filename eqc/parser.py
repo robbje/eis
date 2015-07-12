@@ -65,8 +65,6 @@ class Parser(object):
         elif t.type == 'LPAREN':
             # Left parenthesis
             # Increase indentation level. Create a new left leaf.
-            # It is an error if that leaf exists, because then a symbol
-            # was followed by a parenthesis
             self.indent += 1
             if self.current.left:
                 self.genError("Unexpected parenthesis", t.lexpos)
@@ -77,7 +75,6 @@ class Parser(object):
         elif t.type == 'RPAREN':
             # Right parenthesis
             # Decrease indentation level. It is an error if it drops negative.
-            # If the right leaf doesn't exist yet, collapse current node
             self.indent -= 1
             if self.indent < 0:
                 self.genError("Unbalanced parenthesis", t.lexpos)
@@ -89,7 +86,7 @@ class Parser(object):
             # Series or parallel token
             # If the current node has a value, we need to make a new root.
             # If not, set this nodes value to the operator and move to
-            # the right leaf. It is an error if we don't have a left leaf.
+            # the right leaf.
             if not self.current.left:
                 raise Exception("Syntax error at pos %i" % t.lexpos)
             if self.current.value:
