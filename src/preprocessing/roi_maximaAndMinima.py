@@ -2,6 +2,7 @@
 
 from regionOfInterest import RegionOfInterest
 import numpy as np
+from scipy.signal import argrelextrema
 
 class ROI_MaximaAndMinima(RegionOfInterest):
     """A region of interest is defined by the following rule:
@@ -29,25 +30,11 @@ class ROI_MaximaAndMinima(RegionOfInterest):
         self.ResetToInitValues()
         imag= np.imag(impedance)
 
-        for i in xrange(1,imag.size - 1):
-        ##    print "imag[i] ", type(imag[i])
-        ##    print "i ", type(i)
-            if imag[i - 1] < imag[i] and imag[i] > imag[i + 1]:
-                self.localeMaxima.append(imag[i])
-                self.localeMaximaIndices.append(i)
-            if imag[i - 1] > imag[i] and imag[i] < imag[i + 1]:
-                self.localeMinima.append(imag[i])
-                self.localeMinimaIndices.append(i)
+        self.localeMaximaIndices = argrelextrema(imag, np.greater)
+        self.localeMinimaIndices = argrelextrema(imag, np.less)
 
-        #for i in self.localeMaximaIndices:
-        #    print "self.localeMaxima", type( self.localeMinimaIndices), type(i)
-
-        #for i in self.localeMinimaIndices:
-        #    print "self.localeMinima", type( self.localeMinimaIndices) ,  type(i)
-        #print "self.localeMinimaIndices.size", type(self.localeMinimaIndices) #, len(self.localeMinimaIndices)
-
-        #print "imag[self.localeMinimaIndices]",  imag[self.localeMinimaIndices], type(imag[])
-        #print "imag[self.localeMinimaIndices]",  imag[self.localeMinimaIndices], type(imag[self.localeMinimaIndices])
+        self.localeMinima = imag[self.localeMinimaIndices]
+        self.localeMaxima = imag[self.localeMaximaIndices]
 
         maxAmplitude = np.max( np.append (np.abs(imag[self.localeMaximaIndices]), np.abs(imag[self.localeMinimaIndices])) ) * self.SMALLEST_VALUE_CUTOFF_IN_PERCENT
 
