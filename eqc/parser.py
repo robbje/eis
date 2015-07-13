@@ -2,6 +2,8 @@
 import ply.lex as lex
 
 class Node(object):
+    """Base class to be used in a parsertree
+        """
     def __init__(self):
         self.right = None
         self.left = None
@@ -31,9 +33,21 @@ class Parser(object):
     def t_error(self, t):
         pass
     def __init__(self, nodeobj):
+        """Constructor
+
+            Requires an implementation of a binary node object.
+            It has to have the properties right,left,parent,value.
+            """
+
         self.lexer = lex.lex(object=self)
         self.nodeobj = nodeobj
     def parse(self, string):
+        """Parses a string according to a simple language
+
+            Operators: + | ( )
+            Symbols: [a-zA-Z]+(_[a-zA-Z0-9]*|$^)*
+            """
+
         self.line = string
         self.lexer.input(string)
         self.root = self.nodeobj()
@@ -102,11 +116,3 @@ class Parser(object):
             tmp.parent = self.current
             self.current.right = tmp
             self.current = self.current.right
-
-if __name__ == "__main__":
-    import sys
-    if len(sys.argv) != 2:
-        print "Usage: %s [string]"
-        sys.exit(0)
-    p = Parser(Node)
-    print p.parse(sys.argv[1])
