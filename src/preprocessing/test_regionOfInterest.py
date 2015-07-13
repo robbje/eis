@@ -3,7 +3,7 @@ import numpy as np
 import unittest
 import sys
 
-from regionOfInterest import  PlotRegion
+#from regionOfInterest import  PlotRegion
 from roi_amplitude import ROI_Amplitude
 from roi_maximaAndMinima import ROI_MaximaAndMinima
 
@@ -51,26 +51,27 @@ class TestRegionOfInterest(unittest.TestCase):
         region = ROI_MaximaAndMinima()
         R = 10.0
         tau = 0.01
-        impedance = R / ( 1.0 + 1j * tau)
+        impedance = R / ( 1.0 + 1j *omega* tau)
         indices = region.Process(omega, impedance)
-        #PlotRegion(2* np.pi * omega, impedance, indices)
-        print 1.0 / omega[indices][-1], tau * 100.0
-        print 1.0 / omega[indices][0], tau * 100.0
-        self.assertTrue( ( 1.0 / ( omega[indices] ) >= tau * 100.0).all() )
-        self.assertTrue( ( 1.0 / ( omega[indices] ) <= tau / 100.0).all() )
-
+        #PlotRegion( omega, impedance, indices)
+        self.assertTrue( ( 1.0 / ( omega[indices] ) >= tau / 100.0).all() )
+        self.assertTrue( ( 1.0 / ( omega[indices] ) <= tau * 101.0).all() )
 
 
     def test_MaximaAndMinimaWithInduction(self):
 
-        freq = np.power(10, np.arange(-6,6,0.01) )
+        omega = np.power(10, np.arange(-6,6,0.01) ) * 2 *np.pi
         region = ROI_MaximaAndMinima()
         R = 10.0
         tau = 0.01
         L = 1000
-        impedance = R / ( 1.0 + 1j * 2.0 * freq* np.pi * tau)
-        impedance += (1.0 / R + 1.0 / (1j * 2.0 * freq * np.pi * L)) **-1.0
-        indices = region.Process(freq, impedance)
+        impedance = R / ( 1.0 + 1j * omega* tau)
+        impedance += (1.0 / R + 1.0 / (1j * omega * L)) **-1.0
+        indices = region.Process(omega, impedance)
+
+        self.assertTrue( ( 1.0 / ( omega[indices] ) >= tau / 100.0).all() )
+        self.assertTrue( ( 1.0 / ( omega[indices] ) <= L/R * 101.0).all() )
+        #PlotRegion(omega, impedance, indices)
 
 if __name__ == '__main__':
     unittest.main()

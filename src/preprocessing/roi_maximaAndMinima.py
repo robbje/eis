@@ -28,15 +28,15 @@ class ROI_MaximaAndMinima(RegionOfInterest):
 
     def FindMaximaAndMinima(self, frequency, impedance):
         self.ResetToInitValues()
-        imag= np.imag(impedance)
+        imagaginary= np.imag(impedance)
 
-        self.localeMaximaIndices = argrelextrema(imag, np.greater)
-        self.localeMinimaIndices = argrelextrema(imag, np.less)
+        self.localeMaximaIndices = argrelextrema(imagaginary, np.greater)
+        self.localeMinimaIndices = argrelextrema(imagaginary, np.less)
 
-        self.localeMinima = imag[self.localeMinimaIndices]
-        self.localeMaxima = imag[self.localeMaximaIndices]
+        self.localeMinima = imagaginary[self.localeMinimaIndices]
+        self.localeMaxima = imagaginary[self.localeMaximaIndices]
 
-        maxAmplitude = np.max( np.append (np.abs(imag[self.localeMaximaIndices]), np.abs(imag[self.localeMinimaIndices])) ) * self.SMALLEST_VALUE_CUTOFF_IN_PERCENT
+        maxAmplitude = np.max( np.append (np.abs(imagaginary[self.localeMaximaIndices]), np.abs(imagaginary[self.localeMinimaIndices])) ) * self.SMALLEST_VALUE_CUTOFF_IN_PERCENT
 
         [self.localeMinimaIndices, self.lcoaleMinima ]  = self.NeglectSmallAmplitudes(self.localeMinimaIndices, self.localeMinima, maxAmplitude)
         [self.localeMaximaIndices, self.lcoaleMaxima ]  = self.NeglectSmallAmplitudes(self.localeMaximaIndices, self.localeMaxima, maxAmplitude)
@@ -47,24 +47,12 @@ class ROI_MaximaAndMinima(RegionOfInterest):
         protectedRegion = np.zeros(frequency.size, dtype=np.bool)
         for i in indices:
             middleFreq = frequency[i]
-            counter = i-1
+
             decades = np.power(10, self.PROTECTION_ARRAY_IN_DECADES)
-            while counter > 0:
-                if middleFreq / decades > frequency[counter]:
-                    break
-                counter -= 1
+            indx_start = find_nearest_arg( frequency, middleFreq / decades)
+            indx_end   = find_nearest_arg( frequency, middleFreq * decades)
 
-            counter +=1
-            protectedRegion[counter: i] = True
-            counter = i+1
-
-            while counter < frequency.size:
-                if middleFreq * decades < frequency[counter]:
-                    break
-                counter += 1
-
-            counter -=1
-            protectedRegion[ i: counter] = True
+            protectedRegion[ indx_start: indx_end] = True
         return protectedRegion
 
     def NeglectSmallAmplitudes(self, indices, amplitude, maxAmplitude):
@@ -79,4 +67,9 @@ class ROI_MaximaAndMinima(RegionOfInterest):
             del amplitude[i]
 
         return [indices, amplitude]
+
+def find_nearest_arg(array,value):
+    idx = (np.abs(array-value)).argmin()
+    return idx
+
 
