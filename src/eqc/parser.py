@@ -1,21 +1,28 @@
 #!/usr/bin/env python2
 import ply.lex as lex
 
+
 class Node(object):
+
     """Base class to be used in a parsertree
         """
+
     def __init__(self):
         self.right = None
         self.left = None
         self.value = None
         self.parent = None
+
     def is_terminal(self):
         return self.value.type == 'SYMBOL'
+
     def __str__(self):
-        if not self.value: return "None"
+        if not self.value:
+            return "None"
         if self.is_terminal():
             return "%s" % self.value.value
         return "%s(%s, %s)" % (self.value.value, self.left, self.right)
+
 
 class Parser(object):
     tokens = (
@@ -30,8 +37,10 @@ class Parser(object):
     t_LPAREN = r'\('
     t_RPAREN = r'\)'
     t_SYMBOL = r'[a-zA-Z]+(_[a-zA-Z0-9]*|$^)*'
+
     def t_error(self, t):
         pass
+
     def __init__(self, nodeobj):
         """Constructor
 
@@ -41,6 +50,7 @@ class Parser(object):
 
         self.lexer = lex.lex(object=self)
         self.nodeobj = nodeobj
+
     def parse(self, string):
         """Parses a string according to a simple language
 
@@ -55,16 +65,19 @@ class Parser(object):
         self.indent = 0
         while True:
             t = self.lexer.token()
-            if not t: break
+            if not t:
+                break
             self.handleToken(t)
         return self.root
-    def genError(self,msg,pos):
+
+    def genError(self, msg, pos):
         pos += 1
         exception = "%s at pos %i\n" % (msg, pos)
         exception += "%s\n" % self.line
         exception += "%s" % "^".rjust(pos, " ")
         raise Exception(exception)
-    def handleToken(self,t):
+
+    def handleToken(self, t):
         if t.type == 'SYMBOL':
             # Symbol
             # Set the value of the current node and return to
@@ -96,7 +109,7 @@ class Parser(object):
             if not self.current.left.value:
                 self.genError("Empty brackets", t.lexpos)
                 self.current.left = None
-        elif t.type in ['SERIES','PARALLEL']:
+        elif t.type in ['SERIES', 'PARALLEL']:
             # Series or parallel token
             # If the current node has a value, we need to make a new root.
             # If not, set this nodes value to the operator and move to
