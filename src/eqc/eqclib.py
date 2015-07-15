@@ -13,6 +13,7 @@ def Warburg(w, p):
         tan = 1.0
     return p[0] * tan / denom
 
+
 def dWarburg_dp0(w, p):
     tan = 0
     denom = np.power(1j * w * p[1], 0.5)
@@ -20,7 +21,8 @@ def dWarburg_dp0(w, p):
         tan = np.tanh(denom)
     else:
         tan = 1.0
-    return 1*tan/denom
+    return 1 * tan / denom
+
 
 def dWarburg_dp1(w, p):
     tan = 0
@@ -30,9 +32,10 @@ def dWarburg_dp1(w, p):
     else:
         tan = 1.0
 
-    real = p[0] / (2.0 * p[1] * np.power(np.cosh(np.power(1j * w * p[1], 0.5)),2.0))
+    real = p[0] / \
+        (2.0 * p[1] * np.power(np.cosh(np.power(1j * w * p[1], 0.5)), 2.0))
     imag = -1j * p[0] * w * tan / (2.0 * np.power(1j * w * p[1], 1.5))
-    return real+imag
+    return real + imag
 
 eqcLib = {
     'R': {
@@ -40,6 +43,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: p[0],
             'pNames': ['R'],
+            'constraints': [(0, 1e6), ],
             'jac': [lambda w, p: 1],
         },
     },
@@ -48,6 +52,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: 1.0 / (1j * w * p[0]),
             'pNames': ['C'],
+            'constraints': [(0, 1), ],
             'jac': [lambda w, p: -1.0 / (1j * w * np.power(p[0], 2.0))]
         },
     },
@@ -56,6 +61,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: 1j * w * p[0],
             'pNames': ['L'],
+            'constraints': [(0, 1), ],
             'jac': [lambda w, p: 1j * w],
         },
     },
@@ -64,6 +70,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: p[0] / (1.0 + np.power(1j * p[1] * w, p[2])),
             'pNames': ['R', 'T', 'n'],
+            'constraints': [(0, 1e6), (0, 1), (0, 1)],
             'jac': [lambda w, p: 1.0 / (1.0 + np.power(1j * p[1] * w, p[2])),
                     lambda w, p: -1.0 * p[0] * p[2] * np.power(1j * w * p[1], p[2]) /
                     (1.0 * p[1] * np.power(1.0 + np.power(1j * w * p[1], p[2]), 2.0)),
@@ -76,7 +83,8 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: 1.0 / (p[0] * np.power(1j * w, p[1])),
             'pNames': ['Q', 'n'],
-            'jac': [lambda w, p: -1.0 * np.power(1j*w,-1.0*p[1])/np.power(p[0],2.0),
+            'constraints': [(0, 1), (0, 1)],
+            'jac': [lambda w, p: -1.0 * np.power(1j * w, -1.0 * p[1]) / np.power(p[0], 2.0),
                     lambda w, p: -1.0 * np.log(1j * w) / (p[0] * np.power(1j * w, p[1]))],
         },
     },
@@ -85,11 +93,17 @@ eqcLib = {
         'def': {
             'eqc': Warburg,
             'pNames': ['R', 'T'],
+            'constraints': [(0, 1e6), (0, 1)],
             'jac': [dWarburg_dp0,
                     dWarburg_dp1],
         },
     },
 }
+
+
+def resetClassDefinition():
+    for k in eqcLib:
+        eqcLib[k]['inuse'] = []
 
 
 def getClassDefinition(name):

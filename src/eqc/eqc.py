@@ -3,7 +3,7 @@
 from parser import Node
 from copy import deepcopy
 import numpy as np
-from eqclib import getClassDefinition
+from eqclib import getClassDefinition, resetClassDefinition
 
 
 class CircuitTree(Node):
@@ -15,7 +15,8 @@ class CircuitTree(Node):
             p: 0,
             name="",
             pNames="",
-            jac=[]):
+            jac=[],
+            constraints=[]):
         """Constructor for a CircuitTree node
 
             params: a list of numerical values
@@ -31,6 +32,7 @@ class CircuitTree(Node):
         self.name = name
         self.pNames = pNames
         self.jac = jac
+        self.constraints = constraints
 
     def collapseCircuit(self):
         """Builds the function describing the frequency dependence of circuit
@@ -56,12 +58,23 @@ class CircuitTree(Node):
         self.name = deepcopy(new.name)
         self.pNames = deepcopy(new.pNames)
         self.jac = deepcopy(new.jac)
+        self.constraints = deepcopy(new.constraints)
         return self
+
+    def getCircuit(self):
+        resetClassDefinition()
+        self.collapseCircuit()
+        return self.eqc, self.jac
+
+    def getParameterSet(self):
+        np = len(self.pNames)
+        return [[self.pNames[i], self.constraints[i]] for i in xrange(np)]
 
     def __add__(self, other):
         pu = len(self.p)
         self.p = np.append(self.p, other.p)
         self.pNames += other.pNames
+        self.constraints += other.constraints
         f = self.eqc
         self.name = "(%s+%s)" % (self.name, other.name)
         self.eqc = lambda w, p: f(w, p) + other.eqc(w, p[pu:])
@@ -72,6 +85,7 @@ class CircuitTree(Node):
         pu = len(self.p)
         self.p = np.append(self.p, other.p)
         self.pNames += other.pNames
+        self.constraints += other.constraints
         f = self.eqc
         self.name = "(%s|%s)" % (self.name, other.name)
         self.eqc = lambda w, p: \
