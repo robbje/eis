@@ -3,10 +3,22 @@
 import numpy as np
 from copy import deepcopy
 
+ZERO = 1e-15
+
 
 def Warburg(w, p):
     tan = 0
     denom = np.power(1j * w * p[1], 0.5)
+    if p[1] * w < 1e5:
+        tan = np.tanh(denom)
+    else:
+        tan = 1.0
+    return p[0] * tan / denom
+
+
+def Warburgni(w, p):
+    tan = 0
+    denom = np.power(1j * w * p[1], p[2])
     if p[1] * w < 1e5:
         tan = np.tanh(denom)
     else:
@@ -43,7 +55,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: p[0],
             'pNames': ['R'],
-            'constraints': [(0, 1e6), ],
+            'constraints': [(ZERO, 1e7), ],
             'jac': [lambda w, p: 1],
         },
     },
@@ -52,7 +64,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: 1.0 / (1j * w * p[0]),
             'pNames': ['C'],
-            'constraints': [(0, 1), ],
+            'constraints': [(ZERO, 1), ],
             'jac': [lambda w, p: -1.0 / (1j * w * np.power(p[0], 2.0))]
         },
     },
@@ -61,7 +73,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: 1j * w * p[0],
             'pNames': ['L'],
-            'constraints': [(0, 1), ],
+            'constraints': [(ZERO, 1), ],
             'jac': [lambda w, p: 1j * w],
         },
     },
@@ -70,7 +82,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: p[0] / (1.0 + np.power(1j * p[1] * w, p[2])),
             'pNames': ['R', 'T', 'n'],
-            'constraints': [(0, 1e6), (0, 1), (0, 1)],
+            'constraints': [(ZERO, 1e7), (ZERO, 1), (ZERO, 1)],
             'jac': [lambda w, p: 1.0 / (1.0 + np.power(1j * p[1] * w, p[2])),
                     lambda w, p: -1.0 * p[0] * p[2] * np.power(1j * w * p[1], p[2]) /
                     (1.0 * p[1] * np.power(1.0 + np.power(1j * w * p[1], p[2]), 2.0)),
@@ -83,7 +95,7 @@ eqcLib = {
         'def': {
             'eqc': lambda w, p: 1.0 / (p[0] * np.power(1j * w, p[1])),
             'pNames': ['Q', 'n'],
-            'constraints': [(0, 1), (0, 1)],
+            'constraints': [(ZERO, 1), (ZERO, 1)],
             'jac': [lambda w, p: -1.0 * np.power(1j * w, -1.0 * p[1]) / np.power(p[0], 2.0),
                     lambda w, p: -1.0 * np.log(1j * w) / (p[0] * np.power(1j * w, p[1]))],
         },
@@ -93,9 +105,30 @@ eqcLib = {
         'def': {
             'eqc': Warburg,
             'pNames': ['R', 'T'],
-            'constraints': [(0, 1e6), (0, 1)],
+            'constraints': [(ZERO, 1e7), (ZERO, 1)],
             'jac': [dWarburg_dp0,
                     dWarburg_dp1],
+        },
+    },
+    'Warbni': {
+        'inuse': [],
+        'def': {
+            'eqc': Warburgni,
+            'pNames': ['R', 'T', 'n'],
+            'constraints': [(ZERO, 1e7), (ZERO, 1e4), (0.5, 0.54)],
+            'jac': [lambda w, p: Exception("Not implemented"),
+                    lambda w, p: Exception("Not implemented"),
+                    lambda w, p: Exception("Not implemented")],
+        },
+    },
+    'DC': {
+        'inuse': [],
+        'def': {
+            'eqc': lambda w, p: 1.0 / np.power(1.0 + 1j * w * p[0], 0.5),
+            'pNames': ['T', 'n'],
+            'constraints': [(ZERO, 1), (ZERO, 1)],
+            'jac': [lambda w, p: Exception("Not implemented"),
+                    lambda w, p: Exception("Not implemented")],
         },
     },
 }
