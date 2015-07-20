@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Experiment(object):
     """This class holds data and methods for a single frequency of
@@ -11,7 +12,7 @@ class Experiment(object):
     def __init__(self, t, v, i, w, meta={}):
         self.t = np.array(t)
         self.v = np.array(v)
-        self.i = np.array(i)
+        self.i = -1.0*np.array(i)
         self.w = w
         self.meta = meta
 
