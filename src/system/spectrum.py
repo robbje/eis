@@ -8,6 +8,8 @@ from copy import deepcopy
 class Spectrum(object):
 
     def fromExperiments(self, data):
+    """ data: List of Experiment-objects
+        """
         if len(data) < 2:
             raise ValueError("Too little experiments in spectrum: %i" % len(data))
         data.sort(key = lambda e: e.w)
@@ -17,6 +19,10 @@ class Spectrum(object):
         return self
 
     def fromCircuit(self, omega, eqc, p):
+    """ omega: list of angular frequencies for this spectrum
+        eqc: equivalent circuit function returning the impedance
+        p: parameters to be used for the equivalent circuit function
+        """
         self.omega = np.array(omega)
         self.Z = np.array([eqc(w,p) for w in self.omega])
         self.eqc = eqc
@@ -28,6 +34,9 @@ class Spectrum(object):
         self.Z = np.array([self.eqc(w,p) for w in self.omega])
 
     def fromRawData(self, omega, Z):
+    """ omega: list of angular frequencies for this spectrum
+        Z: list of impedances for this spectrum
+        """
         self.omega = deepcopy(np.array(omega))
         self.Z = deepcopy(np.array(Z))
         return self
