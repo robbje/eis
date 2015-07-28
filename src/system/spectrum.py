@@ -5,46 +5,50 @@ import scipy.signal
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
+
 class Spectrum(object):
 
     def fromExperiments(self, data):
-    """ data: List of Experiment-objects
-        """
+        """ data: List of Experiment-objects
+            """
         if len(data) < 2:
-            raise ValueError("Too little experiments in spectrum: %i" % len(data))
-        data.sort(key = lambda e: e.w)
-        w, z = map(list,map(None,*[d.impedance() for d in data])) 
+            raise ValueError(
+                "Too little experiments in spectrum: %i" %
+                len(data))
+        data.sort(key=lambda e: e.w)
+        w, z = map(list, map(None, *[d.impedance() for d in data]))
         self.omega = np.array(w)
         self.Z = np.array(z)
         return self
 
     def fromCircuit(self, omega, eqc, p):
-    """ omega: list of angular frequencies for this spectrum
-        eqc: equivalent circuit function returning the impedance
-        p: parameters to be used for the equivalent circuit function
-        """
+        """ omega: list of angular frequencies for this spectrum
+            eqc: equivalent circuit function returning the impedance
+            p: parameters to be used for the equivalent circuit function
+            """
         self.omega = np.array(omega)
-        self.Z = np.array([eqc(w,p) for w in self.omega])
+        self.Z = np.array([eqc(w, p) for w in self.omega])
         self.eqc = eqc
         self.p = p
         return self
 
     def updateParameter(self, p):
         self.p = np.array(p)
-        self.Z = np.array([self.eqc(w,p) for w in self.omega])
+        self.Z = np.array([self.eqc(w, p) for w in self.omega])
 
     def fromRawData(self, omega, Z):
-    """ omega: list of angular frequencies for this spectrum
-        Z: list of impedances for this spectrum
-        """
+        """ omega: list of angular frequencies for this spectrum
+            Z: list of impedances for this spectrum
+            """
         self.omega = deepcopy(np.array(omega))
         self.Z = deepcopy(np.array(Z))
         return self
 
-    def interpolate(self, new_omega=2*np.pi*np.power(10, np.arange(-5,10,0.1))):
+    def interpolate(
+            self, new_omega=2 * np.pi * np.power(10, np.arange(-5, 10, 0.1))):
         re = np.interp(new_omega, self.omega, np.real(self.Z))
         im = np.interp(new_omega, self.omega, np.imag(self.Z))
-        self.Z = re+1j*im
+        self.Z = re + 1j * im
         self.omega = np.array(new_omega)
 
     def getImaginaryMaxima(self):
@@ -56,7 +60,7 @@ class Spectrum(object):
     def cropFrequencyRange(self, wRange):
         newZ = []
         newOmega = []
-        for i,w in enumerate(self.omega):
+        for i, w in enumerate(self.omega):
             if (wRange[0] == None or w > wRange[0]) and \
                (wRange[1] == None or w <= wRange[1]):
                 newOmega.append(w)
@@ -64,7 +68,7 @@ class Spectrum(object):
         self.Z = np.array(newZ)
         self.omega = np.array(newOmega)
 
-    def plot_bode(self,style=['b+-','g+-']):
+    def plot_bode(self, style=['b+-', 'g+-']):
         re, = plt.semilogx(self.omega, np.real(self.Z), style[0])
         im, = plt.semilogx(self.omega, np.imag(self.Z), style[1])
         plt.legend([re, im], ['Re(Z)', 'Im(Z)'])
@@ -82,14 +86,24 @@ class Spectrum(object):
         diff_term = np.zeros(self.Z.shape)
         for k in xrange(ng, phiZ.shape[0] - ng):
             int_term[k] = -np.trapz(phiZ[k:], linF[k:])
-            diff_term[k] = np.mean(np.diff(phiZ[k-1:k+2])/np.diff(linF[k-1:k+2]))
-        gamma = -np.pi/6.0
+            diff_term[k] = np.mean(
+                np.diff(
+                    phiZ[
+                        k -
+                        1:k +
+                        2]) /
+                np.diff(
+                    linF[
+                        k -
+                        1:k +
+                        2]))
+        gamma = -np.pi / 6.0
         lnH = 2.0 / np.pi * int_term + gamma * diff_term
         err_lnH = np.log(absZ[ng:-ng]) - lnH[ng:-ng]
         constOffset = np.mean(err_lnH)
         abszhit = np.zeros(absZ.shape)
         abszhit[ng:-ng] = np.exp(constOffset + lnH[ng:-ng])
-        z = abszhit * np.exp(1j*phiZ)
+        z = abszhit * np.exp(1j * phiZ)
         w = self.omega
         if change:
             self.omega = w[ng:-ng]
