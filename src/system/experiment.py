@@ -15,7 +15,7 @@ class Experiment(object):
     def __init__(self, t, v, i, w, meta={}):
         self.t = np.array(t)
         self.v = np.array(v)
-        self.i = -1.0 * np.array(i)
+        self.i = np.array(i)
         self.w = w
         self.meta = meta
 
