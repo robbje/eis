@@ -2,9 +2,9 @@
 
 import numpy as np
 from copy import deepcopy
+from zholkovskij import Bilayer, Trilayer, Quadlayer
 
 ZERO = 1e-15
-
 
 def Warburg(w, p):
     tan = 0
@@ -116,9 +116,7 @@ eqcLib = {
             'eqc': Warburgni,
             'pNames': ['R', 'T', 'n'],
             'constraints': [(ZERO, 1e7), (ZERO, 1e4), (0.5, 0.54)],
-            'jac': [lambda w, p: Exception("Not implemented"),
-                    lambda w, p: Exception("Not implemented"),
-                    lambda w, p: Exception("Not implemented")],
+            'jac': [lambda w, p: Exception("Not implemented")]*3,
         },
     },
     'DC': {
@@ -127,17 +125,41 @@ eqcLib = {
             'eqc': lambda w, p: 1.0 / np.power(1.0 + 1j * w * p[0], 0.5),
             'pNames': ['T', 'n'],
             'constraints': [(ZERO, 1), (ZERO, 1)],
-            'jac': [lambda w, p: Exception("Not implemented"),
-                    lambda w, p: Exception("Not implemented")],
+            'jac': [lambda w, p: Exception("Not implemented")]*2,
+        },
+    },
+    'Bilayer': {
+        'inuse': [],
+        'def': {
+            'eqc': Bilayer,
+            'pNames': ['g1', 't1', 'w1', 'g2', 't2', 'w2'],
+            'constraints': [(ZERO, 1e6), (ZERO, 1), (ZERO, 1e10)]*2,
+            'jac': [lambda w, p: Exception("Not implemented")]*6,
+        },
+    },
+    'Trilayer': {
+        'inuse': [],
+        'def': {
+            'eqc': Trilayer,
+            'pNames': ['g1', 't1', 'w1', 'g2', 't2', 'w2', 'g3', 't3', 'w3'],
+            'constraints': [(ZERO, 1e6), (ZERO, 1), (ZERO, 1e10)]*3,
+            'jac': [lambda w, p: Exception("Not implemented")]*9,
+        },
+    },
+    'Quadlayer': {
+        'inuse': [],
+        'def': {
+            'eqc': Quadlayer,
+            'pNames': ['g1', 't1', 'w1', 'g2', 't2', 'w2', 'g3', 't3', 'w3', 'g4', 't4', 'w4'],
+            'constraints': [(ZERO, 1e6), (ZERO, 1), (ZERO, 1e10)]*4,
+            'jac': [lambda w, p: Exception("Not implemented")]*12,
         },
     },
 }
 
-
 def resetClassDefinition():
     for k in eqcLib:
         eqcLib[k]['inuse'] = []
-
 
 def getClassDefinition(name):
     el = name
