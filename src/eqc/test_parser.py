@@ -12,19 +12,21 @@ class TestParser(unittest.TestCase):
 
     def testParsetree(self):
         # Test some non-ambiguous examples
-        testcases = {
-            'R+R': '+(R, R)',
-            'R|C': '|(R, C)',
-            'R+(R|C)': '+(R, |(R, C))',
-            'R_1+R_2': '+(R_1, R_2)',
-            'R_longname|R': '|(R_longname, R)',
-            'R+(R|C)+(R|L)+(R|L)+Warb':
-            '+(+(+(+(R, |(R, C)), |(R, L)), |(R, L)), Warb)',
-        }
-        for case in testcases:
-            a = str(self.parser.parse(case))
-            b = testcases[case]
-            self.assertEqual(a, b, msg=case)
+        testcases = [
+            ('', 'Empty'),
+            ('R', 'R'),
+            ('(R|C)+R', '+(|(R, C), R)'),
+            ('R+R', '+(R, R)'),
+            ('R|C', '|(R, C)'),
+            ('R+(R|C)', '+(R, |(R, C))'),
+            ('R_1+R_2', '+(R_1, R_2)'),
+            ('R_longname|R', '|(R_longname, R)'),
+            ('R+(R|C)+(R|L)+(R|L)+Warb',
+                '+(+(+(+(R, |(R, C)), |(R, L)), |(R, L)), Warb)')
+        ]
+        for case, target in testcases:
+            result = str(self.parser.parse(case))
+            self.assertEqual(result, target, msg='Case "{}": Expected "{}", got "{}"'.format(case, target, result))
 
     def tearDown(self):
         self.parser = None

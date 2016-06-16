@@ -18,7 +18,9 @@ class Node(object):
 
     def __str__(self):
         if not self.value:
-            return "None"
+            # only a single element in circuit
+            if self.left: return str(self.left)
+            return "Empty"
         if self.is_terminal():
             return "%s" % self.value.value
         return "%s(%s, %s)" % (self.value.value, self.left, self.right)
@@ -105,7 +107,8 @@ class Parser(object):
             self.indent -= 1
             if self.indent < 0:
                 self.genError("Unbalanced parenthesis", t.lexpos)
-            self.current = self.current.parent
+            if self.current.parent:
+                self.current = self.current.parent
             if not self.current.left.value:
                 self.genError("Empty brackets", t.lexpos)
                 self.current.left = None
@@ -118,13 +121,12 @@ class Parser(object):
                 raise Exception("Syntax error at pos %i" % t.lexpos)
             if self.current.value:
                 tmp = self.nodeobj()
-                tmp.value = t
                 self.current.parent = tmp
                 tmp.left = self.current
                 self.root = tmp
                 self.current = tmp
-            else:
-                self.current.value = t
+            self.current.value = t
+            # New right node
             tmp = self.nodeobj()
             tmp.parent = self.current
             self.current.right = tmp

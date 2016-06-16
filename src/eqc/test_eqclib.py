@@ -12,7 +12,7 @@ class TestEqcLib(unittest.TestCase):
         finiteDelta = 1e-9
         maxDelta = 1e-6
         w = 1
-        for element in eqcLib:
+        for element in ['R', 'L', 'C', 'Zarc', 'CPE', 'Warb']:
             cdef = eqcLib[element]['def']
             p = [1] * (len(cdef['pNames']))
             eqc0 = cdef['eqc'](w, p)
