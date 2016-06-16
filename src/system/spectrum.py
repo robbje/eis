@@ -2,6 +2,7 @@
 
 import numpy as np
 import scipy.signal
+from scipy.optimize import leastsq
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
@@ -31,6 +32,26 @@ class Spectrum(object):
         self.eqc = eqc
         self.p = p
         return self
+
+    def fit(self, eqc, pset):
+        # TODO: utilize jacobian, if possible
+        def residuals(p, eqc, data, pset):
+            pset.updateUnmaskedTransformedValues(np.abs(p))
+            res = []
+            for i, w in enumerate(data.omega):
+                z = eqc.eqc(w, pset._values)
+                res.append(np.real(z) - np.real(data.Z[i]))
+                res.append(np.imag(z) - np.imag(data.Z[i]))
+            return np.array(res)
+
+        p0 = pset.getUnmaskedTransformedValues()
+        plsq = leastsq(residuals, p0, args=(eqc, self, pset), \
+                full_output = True,
+                xtol = 1e-20,
+                ftol = 1e-12,
+                factor = 1)
+        pset.updateUnmaskedTransformedValues(np.abs(plsq[0]))
+        return pset
 
     def updateParameter(self, p):
         self.p = np.array(p)
