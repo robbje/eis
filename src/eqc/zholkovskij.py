@@ -1,5 +1,9 @@
 import numpy as np
 
+# Implements parts of the analytical transmission line models found in
+# "Irreversible Thermodynamics and Impedance Spectroscopy of Multilayer Membranes" - E. Zholkovskij
+# http://dx.doi.org/10.1006/jcis.1995.1034
+
 def tanh(x):
     np.seterr(all='raise')
     try:
