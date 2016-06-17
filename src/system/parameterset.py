@@ -19,8 +19,8 @@ class ParameterSet(object):
         self.updateValues(values)
 
     @classmethod
-    def fromEqc(cls, eqc, p):
-        return cls(eqc.pNames, eqc.constraints, p)
+    def fromTree(cls, tree, p):
+        return cls(tree.pNames, tree.constraints, p)
 
     def updateValues(self, p):
         self._values = p
@@ -34,7 +34,8 @@ class ParameterSet(object):
         tp = []
         for i, v in enumerate(self._mask):
             if v:
-                tp.append(param[::-1].pop())
+                tp.append(param[0])
+                param = param[1:]
             else:
                 tp.append(self._tvalues[i])
         self.updateTransformedValues(tp)
@@ -42,7 +43,8 @@ class ParameterSet(object):
     def updateUnmaskedValues(self, param):
         for i, v in enumerate(self._mask):
             if v:
-                p.append(param[::-1].pop())
+                p.append(param[0])
+                param = param[1:]
             else:
                 p.append(self._values[i])
         self.updateValues(p)

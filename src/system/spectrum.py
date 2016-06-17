@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 
+import json
 import numpy as np
 import scipy.signal
 from scipy.optimize import leastsq
@@ -9,7 +10,9 @@ from copy import deepcopy
 
 class Spectrum(object):
 
-    def fromExperiments(self, data):
+    @classmethod
+    def fromExperiments(cls, data):
+        s = cls()
         """ data: List of Experiment-objects
             """
         if len(data) < 2:
@@ -18,40 +21,56 @@ class Spectrum(object):
                 len(data))
         data.sort(key=lambda e: e.w)
         w, z = map(list, map(None, *[d.impedance() for d in data]))
-        self.omega = np.array(w)
-        self.Z = np.array(z)
-        return self
+        s.omega = np.array(w)
+        s.Z = np.array(z)
+        return s
 
-    def fromCircuit(self, omega, eqc, p):
+    @classmethod
+    def fromCircuit(cls, omega, eqc, p):
         """ omega: list of angular frequencies for this spectrum
             eqc: equivalent circuit function returning the impedance
             p: parameters to be used for the equivalent circuit function
             """
-        self.omega = np.array(omega)
-        self.Z = np.array([eqc(w, p) for w in self.omega])
-        self.eqc = eqc
-        self.p = p
-        return self
+        s = cls()
+        s.omega = np.array(omega)
+        s.Z = np.array([eqc(w, p) for w in omega])
+        s.eqc = eqc
+        return s
 
-    def fit(self, eqc, pset):
+    @classmethod
+    def fromJSON(cls, jsonstring):
+        d = json.loads(jsonstring)
+        s = cls()
+        s.omega = d['omega']
+        s.Z = np.array(d['Re']) + 1j * np.array(d['Im'])
+        return s
+
+    def toJSON(self):
+        return json.dumps({'omega':list(self.omega),
+                           'Re':list(np.real(self.Z)),
+                           'Im':list(np.imag(self.Z))})
+
+    def fit(self, spectrum, pset):
         # TODO: utilize jacobian, if possible
-        def residuals(p, eqc, data, pset):
+        def residuals(p, spectrum, pset):
             pset.updateUnmaskedTransformedValues(np.abs(p))
             res = []
-            for i, w in enumerate(data.omega):
-                z = eqc.eqc(w, pset._values)
-                res.append(np.real(z) - np.real(data.Z[i]))
-                res.append(np.imag(z) - np.imag(data.Z[i]))
+            for i, w in enumerate(spectrum.omega):
+                z = self.eqc(w, pset._values)
+                res.append(np.real(z) - np.real(spectrum.Z[i]))
+                res.append(np.imag(z) - np.imag(spectrum.Z[i]))
             return np.array(res)
 
         p0 = pset.getUnmaskedTransformedValues()
-        plsq = leastsq(residuals, p0, args=(eqc, self, pset), \
+        plsq = leastsq(residuals, p0, args=(spectrum, pset), \
                 full_output = True,
                 xtol = 1e-20,
                 ftol = 1e-12,
                 factor = 1)
         pset.updateUnmaskedTransformedValues(np.abs(plsq[0]))
-        return pset
+        r = residuals(plsq[0], spectrum, pset)
+        rmsd = np.sqrt(np.sum(np.power(r,2.0))/len(r))
+        return pset, rmsd
 
     def updateParameter(self, p):
         self.p = np.array(p)
