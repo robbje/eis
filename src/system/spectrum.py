@@ -9,6 +9,9 @@ from copy import deepcopy
 
 
 class Spectrum(object):
+    def __init__(self):
+        self.omega = []
+        self.Z = []
 
     @classmethod
     def fromExperiments(cls, data):

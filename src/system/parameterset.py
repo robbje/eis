@@ -97,3 +97,9 @@ class ParameterSet(object):
 
     def invertMask(self):
         self._mask = map(lambda x: not x, self._mask)
+    
+    def __str__(self):
+        s = ''
+        for i, v in enumerate(self._values):
+            s += '{}{}\n'.format(self._names[i].ljust(30), v)
+        return s
