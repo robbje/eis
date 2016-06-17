@@ -5,6 +5,7 @@ import numpy as np
 class ParameterSet(object):
     
     T_POWER = (lambda x: 10.0**float(x), lambda y: np.log10(y))
+    T_NEGPOWER = (lambda x: 10.0**float(-x), lambda y: -1.0*np.log10(y))
     T_NANO = (lambda x: x*1e9, lambda y: y*1e-9)
     T_MICRO = (lambda x: x*1e6, lambda y: y*1e-6)
     T_MILLI = (lambda x: x*1e3, lambda y: y*1e-3)
@@ -66,6 +67,12 @@ class ParameterSet(object):
             if v == pName:
                 self._transform[i] = functions[0]
                 self._untransform[i] = functions[1]
+
+    def applyConstraints(self):
+        for i, v in enumerate(self._constraints):
+            if self._values[i] < v[0]: self._values[i] = v[0]
+            if self._values[i] > v[1]: self._values[i] = v[1]
+        self.updateValues(self._values)
 
     def applyTransform(self, p):
         return [self._transform[i](v) for i, v in enumerate(p)]

@@ -54,6 +54,7 @@ class Spectrum(object):
         # TODO: utilize jacobian, if possible
         def residuals(p, spectrum, pset):
             pset.updateUnmaskedTransformedValues(np.abs(p))
+            pset.applyConstraints()
             res = []
             for i, w in enumerate(spectrum.omega):
                 z = self.eqc(w, pset._values)

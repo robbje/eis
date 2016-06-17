@@ -26,7 +26,7 @@ def Bilayer(w, p):
     nom = (t2 - t1)**2
     denom = Zd(w,g1,t1,r1) + Zd(w,g2,t2,r2)
 
-    Z = 1/g1 + 1/g2 + nom/denom
+    Z = nom/denom
     return Z
 
 def trilambda(w, p):
@@ -48,15 +48,15 @@ def Trilayer(w, p):
     (g2, t2, w2) = p[3:6]
     (g3, t3, w3) = p[6:9]
 
-    Z12 = Bilayer(w, p[0:6]) - 1/g1 - 1/g2
-    Z23 = Bilayer(w, p[3:9]) - 1/g2 - 1/g3
+    Z12 = Bilayer(w, p[0:6])
+    Z23 = Bilayer(w, p[3:9])
 
     h123  = trilambda(w,p)
 
     nom = Z12 + Z23 + 2 * h123 * np.sqrt(Z12*Z23)
     denom = 1 - h123**2
 
-    return 1/g1 + 1/g2 + 1/g3 + nom/denom
+    return nom/denom
 
 def Quadlayer(w, p):
     (g1, t1, w1) = p[0:3]
@@ -67,13 +67,13 @@ def Quadlayer(w, p):
     r2 = Zr(w,w2)
     r3 = Zr(w,w3)
     r4 = Zr(w,w4)
-    Z12 = Bilayer(w, p[0:6]) - 1/g1 - 1/g2
-    Z23 = Bilayer(w, p[3:9]) - 1/g2 - 1/g3
-    Z34 = Bilayer(w, p[6:12]) - 1/g3 - 1/g4
+    Z12 = Bilayer(w, p[0:6])
+    Z23 = Bilayer(w, p[3:9])
+    Z34 = Bilayer(w, p[6:12])
     h123 = trilambda(w,p[0:9])
     h234 = trilambda(w,p[3:12])
     nom = (1-h234**2)*Z12 + (1-h123**2)*Z34 + Z23
     nom += 2*h123*np.sqrt(Z12*Z23) + 2*h234*np.sqrt(Z23*Z34)
     nom += 2*h123*h234*np.sqrt(Z12*Z34)
     denom = 1-(h123**2+h234**2)
-    return 1/g1 + 1/g2 + 1/g3 + 1/g4 + nom/denom
+    return nom/denom

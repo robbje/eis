@@ -105,7 +105,7 @@ eqcLib = {
         'def': {
             'eqc': Warburg,
             'pNames': ['R', 'T'],
-            'constraints': [(ZERO, 1e7), (ZERO, 1)],
+            'constraints': [(ZERO, 1e7), (ZERO, 100)],
             'jac': [dWarburg_dp0,
                     dWarburg_dp1],
         },
