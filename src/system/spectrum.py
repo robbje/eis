@@ -41,6 +41,17 @@ class Spectrum(object):
         return s
 
     @classmethod
+    def fromRawData(cls, omega, Z):
+        """ omega: list of angular frequencies for this spectrum
+            Z: list of impedances for this spectrum
+            """
+        s = cls()
+        s.omega = deepcopy(np.array(omega))
+        s.Z = deepcopy(np.array(Z))
+        return s
+
+
+    @classmethod
     def fromJSON(cls, jsonstring):
         d = json.loads(jsonstring)
         s = cls()
@@ -79,14 +90,6 @@ class Spectrum(object):
     def updateParameter(self, p):
         self.p = np.array(p)
         self.Z = np.array([self.eqc(w, p) for w in self.omega])
-
-    def fromRawData(self, omega, Z):
-        """ omega: list of angular frequencies for this spectrum
-            Z: list of impedances for this spectrum
-            """
-        self.omega = deepcopy(np.array(omega))
-        self.Z = deepcopy(np.array(Z))
-        return self
 
     def interpolate(
             self, new_omega=2 * np.pi * np.power(10, np.arange(-5, 10, 0.1))):
@@ -152,4 +155,4 @@ class Spectrum(object):
         if change:
             self.omega = w[ng:-ng]
             self.Z = z[ng:-ng]
-        return w, z
+        return Spectrum.fromRawData(w[ng:-ng], z[ng:-ng])
