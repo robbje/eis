@@ -5,6 +5,7 @@ from system.parameterset import ParameterSet
 from eqc.eqc import CircuitTree
 from eqc.parser import Parser
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider, Button
 import numpy as np
 
 class MySpectrum(Spectrum):
@@ -47,8 +48,32 @@ e.updateParameter(p._values)
 e.plot_bode(['g-', 'g-'])       # Values post fit: green
 plt.show()
 
-plt.figure()
+fig, ax = plt.subplots()
+plt.subplots_adjust(left=0.25, bottom=0.25)
 plt.gca().invert_yaxis()
 s.plot_nyquist('kx')
-e.plot_nyquist('g-')
+plot, = e.plot_nyquist('g-')
+
+slider = Slider(plt.axes([0.25, 0.1, 0.65, 0.03]), 't2', 1e-7, 1.0, valinit=p._values[6])
+slider2 = Slider(plt.axes([0.25, 0.2, 0.65, 0.03]), 't3', 1e-7, 1.0, valinit=p._values[9])
+plt.gca().set_aspect('auto')
+
+def update(val, index):
+    params = pset._values
+    params[index] = val
+    pset.updateValues(params)
+    e.updateParameter(pset._values)
+    plot.set_ydata(np.imag(e.Z))
+    fig.canvas.draw_idle()
+
+slider.on_changed(lambda x: update(x, 6))
+slider2.on_changed(lambda x: update(x, 9))
+
+def reset(event):
+    slider.reset()
+    slider2.reset()
+resetax = plt.axes([0.8, 0.025, 0.1, 0.04])
+button = Button(resetax, 'Reset', hovercolor='0.975')
+button.on_clicked(reset)
+
 plt.show()

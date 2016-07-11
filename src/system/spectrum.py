@@ -119,10 +119,11 @@ class Spectrum(object):
         re, = plt.semilogx(self.omega, np.real(self.Z), style[0])
         im, = plt.semilogx(self.omega, np.imag(self.Z), style[1])
         plt.legend([re, im], ['Re(Z)', 'Im(Z)'])
+        return re, im
 
     def plot_nyquist(self, style='rx-'):
         plt.gca().set_aspect('equal')
-        plt.plot(np.real(self.Z), np.imag(self.Z), style)
+        return plt.plot(np.real(self.Z), np.imag(self.Z), style)
 
     def do_kkr(self, change=False):
         ng = 1
